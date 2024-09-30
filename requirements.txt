@@ -1,0 +1,7 @@
+openai~=1.47.0
+langchain-core~=0.3.6
+langchain
+langchain-community
+langchain-chroma
+openpyxl
+pandas
