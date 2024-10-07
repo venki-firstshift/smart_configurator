@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import json
 
 from fastapi import FastAPI, UploadFile, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import HTMLResponse
@@ -6,8 +7,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from copilot.connection_manager import connection_manager
-import random
 import aiofiles
+import copilot.config_assistant as ca
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -27,7 +28,19 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
         while True:
             # receive text from the user
             data = await websocket.receive_text()
-            await connection_manager.send_personal_message(f"You : {data}", websocket)
+            msg = json.loads(data)
+            if msg["cmd"] == 'entity':
+                file_name = msg["filename"]
+                config_entity = ca.discover_config_entity(file_name, client_id)
+                result  = dict(msg=config_entity, cmd=msg['cmd'])
+            elif msg["cmd"] == 'columns':
+                cols = ca.discover_column_mappings(client_id)
+                result = dict(msg=cols, cmd=msg['cmd'])
+            else:
+                err = dict(err="error")
+                result = dict(msg=err, cmd=msg['cmd'])
+            res = json.dumps(result)
+            await connection_manager.send_personal_message(res, websocket)
             # broadcast message to the connected user
             await connection_manager.broadcast(f"Client #{client_id}: {data}", websocket)
 
