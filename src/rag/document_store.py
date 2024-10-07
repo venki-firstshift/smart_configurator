@@ -19,6 +19,7 @@ from utils import utils
 ENTITY_SHEET = "CONFIG_DATA_ENTITIES"
 MAPPING_SHEET = "CONFIG_DATA_ENTITY_MAP"
 
+
 class EntityDocumentProvider:
     def __init__(self, tenant_path: str, max_docs: int = 100):
         self.tenant_path = tenant_path
@@ -97,7 +98,7 @@ class EntityDocumentProvider:
 class DocumentStoreBuilder:
     def __init__(self, search_type: str="similarity_score_threshold", search_kwargs: dict=None):
         self.search_type = search_type
-        self.search_kwargs = search_kwargs if search_kwargs is not None else dict(k=6, score_threshold=0.5)
+        self.search_kwargs = search_kwargs if search_kwargs is not None else dict(k=6, score_threshold=0.6)
         self.docs = []
         self.vectorstore = None
         self.retriever = None
@@ -110,6 +111,7 @@ class DocumentStoreBuilder:
     def build_store_as_retriever(self):
         if len(self.docs) == 0:
             raise ValueError("There are not documents processed and nothing to build a document store")
+        logging.info(f"There are {len(self.docs)} in the store for RAG...")
         self.vectorstore = Chroma.from_documents(documents=self.docs, embedding=OpenAIEmbeddings())
         self.retriever = self.vectorstore.as_retriever(search_type=self.search_type, search_kwargs=self.search_kwargs)
         return self.retriever

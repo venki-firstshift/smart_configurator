@@ -1,19 +1,30 @@
 from langchain_core.documents import Document
 import csv
+import uuid
+GLOBAL_CONFIG_MAP = dict()
+
+ENTITY_KEYS = [
+    'ENTITY_CATEGORY', 'ENTITY_NAME', 'ENTITY_SOURCE', 'ENTITY_TYPE', 'DIMENSION_SEQUENCE',
+    'DIMENSION_TYPE', 'DD1_PK', 'DD2_PK','DD3_PK', 'DD4_PK', 'DD5_PK'
+]
 
 ENTITY_TEMPLATE = """
-    irrespective of the order, if a given list of columns approximately match {columns}, then entity is {entity_name} and its type is {entity_type}
+    irrespective of the order, if a given list of columns approximately match {columns}, then config is: "{config_key}"
 """
 ENTITY_QUERY_TEMPLATE = """
-    Given columns {columns} what is the entity and what is its type?
+    Given columns {columns} return config 
 """
 def headers_to_text(headers: [str], meta_data: dict) -> str:
     # convert headers into a doc
     if 'UU_ID' in headers: headers.remove('UU_ID')
     columns = ",".join([ f"\"{hd}\"" for hd in headers])
-    entity_name = meta_data["ENTITY_NAME"]
-    entity_type = meta_data["ENTITY_TYPE"]
-    text_doc = ENTITY_TEMPLATE.format(columns=columns, entity_name=entity_name, entity_type=entity_type)
+
+    #entity_config = {ek:meta_data[ek] for ek in ENTITY_KEYS}
+    entity_config = {f"|{ek}:{meta_data[ek]}|" for ek in ENTITY_KEYS}
+    entity_config_str = " ".join(entity_config)
+    # config_id = str(uuid.uuid4())
+    # GLOBAL_CONFIG_MAP[config_id] = entity_config
+    text_doc = ENTITY_TEMPLATE.format(columns=columns, config_key=entity_config_str)
     return text_doc
 
 def make_document(headers: [str], meta_data: dict) -> Document:

@@ -1,8 +1,15 @@
+fastapi
 openai~=1.47.0
 langchain-core~=0.3.6
 langchain
 langchain-openai
 langchain-community
 langchain-chroma
+langserve[all]
+langgraph>0.2.27
 openpyxl
 pandas
+pydantic
+python-multipart
+websockets
+aiofiles
