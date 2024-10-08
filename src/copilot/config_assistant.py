@@ -18,8 +18,14 @@ sample_csv_prompt = """
 entity_question = """
     Return a JSON object with a `entity` key that answers the following question: What is a possible table name for given CSV data? 
 """
-dim_question = """
+product_dim_question = """
     Return a JSON object with a `product` key that answers the following question with true of false: Is {entity_name} a product or something which can be sold? 
+"""
+customer_dim_question = """
+    Return a JSON object with a `customer` key that answers the following question with true of false: Is {entity_name} stand for a customer or someone who buys a product or service? 
+"""
+location_dim_question = """
+    Return a JSON object with a `location` key that answers the following question with true of false: does the given CSV describe sites, locations or warehouses? 
 """
 cols_question = """
     Return a JSON object with a `columns` key that answers the following question: What are the columns and their data types  given CSV data?
@@ -78,14 +84,27 @@ def discover_config_entity(file_name: str, client_id: str) -> dict:
     output = app.invoke({"messages": input_messages}, config)
     last_msg = output["messages"][-1]
     entity_dict = json_parser.parse(last_msg.content)
+    # entity details
+    entity_details = {"ENTITY_NAME": entity_dict['entity']}
 
-    input_messages = [HumanMessage(csv_msg), HumanMessage(dim_question.format(entity_name=entity_dict['entity']))]
+    input_messages = [HumanMessage(csv_msg), HumanMessage(product_dim_question.format(entity_name=entity_dict['entity']))]
     output = app.invoke({"messages": input_messages}, config)
     last_msg = output["messages"][-1]
     prod_dict = json_parser.parse(last_msg.content)
+
+    input_messages = [HumanMessage(csv_msg), HumanMessage(customer_dim_question.format(entity_name=entity_dict['entity']))]
+    output = app.invoke({"messages": input_messages}, config)
+    last_msg = output["messages"][-1]
+    cust_dict = json_parser.parse(last_msg.content)
+
+    input_messages = [HumanMessage(csv_msg),
+                      HumanMessage(location_dim_question.format(entity_name=entity_dict['entity']))]
+    output = app.invoke({"messages": input_messages}, config)
+    last_msg = output["messages"][-1]
+    location_dict = json_parser.parse(last_msg.content)
+
     config_dict = dict()
-    # entity details
-    entity_details = {"ENTITY_NAME": entity_dict['entity']}
+
     if prod_dict['product']:
         entity_details["ENTITY_NAME"] = 'Product'
         entity_details["ENTITY_TYPE"] = "DIMENSION_MASTER_MANAGEMENT"
@@ -93,6 +112,23 @@ def discover_config_entity(file_name: str, client_id: str) -> dict:
         entity_details["DD1_PK"] = 'Product'
         entity_details["SOURCE_SCHEMA"] = "PRODUCT_MASTER"
         entity_details["STAGE_SCHEMA"] = "DIMENSION_MASTER"
+
+    if cust_dict['customer']:
+        entity_details["ENTITY_NAME"] = 'Customer'
+        entity_details["ENTITY_TYPE"] = "DIMENSION_MASTER_MANAGEMENT"
+        entity_details["DIMENSION_SEQUENCE"] = 2
+        entity_details["DD2_PK"] = 'Customer'
+        entity_details["SOURCE_SCHEMA"] = "CUSTOMER_MASTER"
+        entity_details["STAGE_SCHEMA"] = "DIMENSION_MASTER"
+
+    if location_dict['location']:
+        entity_details["ENTITY_NAME"] = 'Location'
+        entity_details["ENTITY_TYPE"] = "DIMENSION_MASTER_MANAGEMENT"
+        entity_details["DIMENSION_SEQUENCE"] = 3
+        entity_details["DD2_PK"] = 'Location'
+        entity_details["SOURCE_SCHEMA"] = "LOCATION_MASTER"
+        entity_details["STAGE_SCHEMA"] = "DIMENSION_MASTER"
+
     config_dict['CONFIG_DATA_ENTITY'] = entity_details
 
     return config_dict
