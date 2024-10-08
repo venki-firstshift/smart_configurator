@@ -27,6 +27,9 @@ customer_dim_question = """
 location_dim_question = """
     Return a JSON object with a `location` key that answers the following question with true of false: does the given CSV describe sites, locations or warehouses? 
 """
+source_dim_question = """
+    Return a JSON object with a `source` key that answers the following question with true of false: does the given CSV describe suppliers or vendors from which goods are sourced? 
+"""
 cols_question = """
     Return a JSON object with a `columns` key that answers the following question: What are the columns and their data types  given CSV data?
 """
@@ -87,25 +90,36 @@ def discover_config_entity(file_name: str, client_id: str) -> dict:
     # entity details
     entity_details = {"ENTITY_NAME": entity_dict['entity']}
 
+    dim_dict = dict()
     input_messages = [HumanMessage(csv_msg), HumanMessage(product_dim_question.format(entity_name=entity_dict['entity']))]
     output = app.invoke({"messages": input_messages}, config)
     last_msg = output["messages"][-1]
     prod_dict = json_parser.parse(last_msg.content)
+    dim_dict = dim_dict | prod_dict
 
     input_messages = [HumanMessage(csv_msg), HumanMessage(customer_dim_question.format(entity_name=entity_dict['entity']))]
     output = app.invoke({"messages": input_messages}, config)
     last_msg = output["messages"][-1]
     cust_dict = json_parser.parse(last_msg.content)
+    dim_dict = dim_dict | cust_dict
 
     input_messages = [HumanMessage(csv_msg),
                       HumanMessage(location_dim_question.format(entity_name=entity_dict['entity']))]
     output = app.invoke({"messages": input_messages}, config)
     last_msg = output["messages"][-1]
     location_dict = json_parser.parse(last_msg.content)
+    dim_dict = dim_dict | location_dict
+
+    input_messages = [HumanMessage(csv_msg),
+                      HumanMessage(source_dim_question.format(entity_name=entity_dict['entity']))]
+    output = app.invoke({"messages": input_messages}, config)
+    last_msg = output["messages"][-1]
+    source_dict = json_parser.parse(last_msg.content)
+    dim_dict = dim_dict | source_dict
 
     config_dict = dict()
 
-    if prod_dict['product']:
+    if dim_dict['product']:
         entity_details["ENTITY_NAME"] = 'Product'
         entity_details["ENTITY_TYPE"] = "DIMENSION_MASTER_MANAGEMENT"
         entity_details["DIMENSION_SEQUENCE"] = 1
@@ -113,7 +127,7 @@ def discover_config_entity(file_name: str, client_id: str) -> dict:
         entity_details["SOURCE_SCHEMA"] = "PRODUCT_MASTER"
         entity_details["STAGE_SCHEMA"] = "DIMENSION_MASTER"
 
-    if cust_dict['customer']:
+    if dim_dict['customer']:
         entity_details["ENTITY_NAME"] = 'Customer'
         entity_details["ENTITY_TYPE"] = "DIMENSION_MASTER_MANAGEMENT"
         entity_details["DIMENSION_SEQUENCE"] = 2
@@ -121,12 +135,20 @@ def discover_config_entity(file_name: str, client_id: str) -> dict:
         entity_details["SOURCE_SCHEMA"] = "CUSTOMER_MASTER"
         entity_details["STAGE_SCHEMA"] = "DIMENSION_MASTER"
 
-    if location_dict['location']:
+    if dim_dict['location']:
         entity_details["ENTITY_NAME"] = 'Location'
         entity_details["ENTITY_TYPE"] = "DIMENSION_MASTER_MANAGEMENT"
         entity_details["DIMENSION_SEQUENCE"] = 3
-        entity_details["DD2_PK"] = 'Location'
+        entity_details["DD3_PK"] = 'Location'
         entity_details["SOURCE_SCHEMA"] = "LOCATION_MASTER"
+        entity_details["STAGE_SCHEMA"] = "DIMENSION_MASTER"
+
+    if dim_dict['source']:
+        entity_details["ENTITY_NAME"] = 'Source'
+        entity_details["ENTITY_TYPE"] = "DIMENSION_MASTER_MANAGEMENT"
+        entity_details["DIMENSION_SEQUENCE"] = 4
+        entity_details["DD4_PK"] = 'Source'
+        entity_details["SOURCE_SCHEMA"] = "SOURCE_MASTER"
         entity_details["STAGE_SCHEMA"] = "DIMENSION_MASTER"
 
     config_dict['CONFIG_DATA_ENTITY'] = entity_details
