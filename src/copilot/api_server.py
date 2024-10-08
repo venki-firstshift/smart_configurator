@@ -1,14 +1,23 @@
 #!/usr/bin/env python
 import json
+from datetime import timedelta
+from typing import Annotated
 
-from fastapi import FastAPI, UploadFile, WebSocket, WebSocketDisconnect, Request
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi import (
+    FastAPI, UploadFile, WebSocket, WebSocketDisconnect,
+    Request, Depends, HTTPException, status
+)
+from fastapi.responses import HTMLResponse, JSONResponse
+#from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from passlib.context import CryptContext
 
+from auth.jwt_auth import Token
 from copilot.connection_manager import connection_manager
 import aiofiles
 import copilot.config_assistant as ca
+from auth import jwt_auth
 
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
@@ -58,6 +67,22 @@ async def create_upload_file(file: UploadFile, client_id: str):
         await out_file.write(content)
     return {"filename": file.filename, "client_id": client_id}
 
+@app.post("/api/token")
+async def login_for_access_token(
+    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+) -> Token:
+    user = jwt_auth.authenticate_user(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=jwt_auth.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = jwt_auth.create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
+    return Token(access_token=access_token, token_type="bearer")
 
 if __name__ == "__main__":
     import uvicorn

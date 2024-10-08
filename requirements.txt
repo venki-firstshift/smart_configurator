@@ -13,3 +13,5 @@ pydantic
 python-multipart
 websockets
 aiofiles
+pyjwt
+passlib[bcrypt]
