@@ -9,9 +9,9 @@ from fastapi import (
     Request, Depends, HTTPException, status
 )
 from fastapi.responses import HTMLResponse, JSONResponse
-#from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from passlib.context import CryptContext
+from starlette.responses import RedirectResponse
 
 from auth.jwt_auth import Token
 from copilot.connection_manager import connection_manager
@@ -20,13 +20,7 @@ import copilot.config_assistant as ca
 from auth import jwt_auth
 
 app = FastAPI()
-templates = Jinja2Templates(directory="templates")
-#app.mount("/templates", StaticFiles(directory="templates"), name="templates")
-
-@app.get("/", response_class=HTMLResponse)
-def read_index(request: Request):
-    # Render the HTML template
-    return templates.TemplateResponse("index.html", {"request": request})
+app.mount("/ui", StaticFiles(directory="ui"), name="static")
 
 
 @app.websocket("/ws/process/csv/{client_id}")
@@ -57,6 +51,11 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
     except WebSocketDisconnect:
         connection_manager.disconnect(websocket)
         await connection_manager.broadcast(f"Client #{client_id} left the chat", websocket)
+
+@app.get("/")
+async def redirect():
+    response = RedirectResponse(url='/ui/index.html')
+    return response
 
 @app.post("/api/upload/file/{client_id}")
 async def create_upload_file(file: UploadFile, client_id: str):

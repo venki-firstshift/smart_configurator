@@ -1,3 +1,6 @@
+import os
+from utils import utils
+
 from langchain_openai import ChatOpenAI
 
 from langgraph.checkpoint.memory import MemorySaver
@@ -8,6 +11,7 @@ from langchain_core.prompts import MessagesPlaceholder, ChatPromptTemplate
 from langchain_core.output_parsers.json import SimpleJsonOutputParser
 
 DATA_DIR = '/tmp/smart_configurator'
+os.environ["OPENAI_API_KEY"] = utils.read_env_variable("OPENAI_API_KEY", default_val="OpenAI Key not specified")
 
 llm_model = ChatOpenAI(model_name="gpt-3.5-turbo", temperature=0.0)
 

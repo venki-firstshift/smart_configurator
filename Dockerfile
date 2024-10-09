@@ -17,8 +17,8 @@ WORKDIR /app
 COPY src/ /app
 COPY requirements.txt ./
 # Install Python dependencies
-RUN pip install --no-cache-dir --no-dependencies -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 COPY start_server.sh ./
-COPY --from=build /ui/dist/sakai-ng /app/server/static
+COPY --from=build /ui/dist/sakai-ng /app/ui
 
-CMD ["./start_server.sh"]
+CMD ["/app/start_server.sh"]

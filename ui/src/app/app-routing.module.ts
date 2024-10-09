@@ -7,7 +7,7 @@ import { AppLayoutComponent } from "./layout/app.layout.component";
     imports: [
         RouterModule.forRoot([
             {
-                path: '', component: AppLayoutComponent,
+                path: 'ui', component: AppLayoutComponent,
                 children: [
                     { path: '', loadChildren: () => import('./assistant/components/copilot/copilot.module').then(m => m.CopilotModule) }
                 ]

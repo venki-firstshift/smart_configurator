@@ -1,0 +1,13 @@
+services:
+  ca:
+    image: ca:0.5.0
+    build: .
+    environment:
+      OPENAI_API_KEY: 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
+    ports:
+      - "18000:18000"
+    networks:
+      - default
+networks:
+  default:
+    driver: bridge
