@@ -199,3 +199,5 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# angular build stuff
+**/.angular
