@@ -1,0 +1,97 @@
+<div>
+    <div class="grid">
+            <div class="col-12 full-width">
+            <div class="card mb-0">
+                <div class="flex align-items-center justify-content-center">
+                    {{fileName}}
+                </div>                             
+                <div class="flex align-items-center justify-content-left border-round">
+                        <div class="col-4">
+                            <p-fileUpload 
+                            mode="basic" 
+                            chooseLabel="Choose a CSV File to Analyze" 
+                            chooseIcon="pi pi-upload"
+                            name="file" 
+                            url="/api/upload/file/{{clientId}}" 
+                            accept=".csv" 
+                            maxFileSize="1000000" 
+                            (onUpload)="onUpload($event)" [auto]="true"/>   
+                        </div>
+                        <div class="col-4" *ngIf = "fileName">
+                                <p-button 
+                                    label="Discover Config Entity" 
+                                    [disabled]="steps.get('entity').state == 'progress'" 
+                                    (click) = "onDiscoverEntity($event)"
+                                />
+                        </div>
+                        <div class="col-4" *ngIf = "fileName && steps.get('entity').state == 'success'">
+                            <p-button 
+                                label="Discover Config Entity Map" 
+                                [disabled]="steps.get('columns').state == 'progress'" 
+                                (click) = "onDiscoverEntityMap($event)"
+                            />
+                        </div>
+                </div>
+            </div>
+            <div class="card mb-0" *ngIf = "steps.get('entity').state != null">
+                <div class="grid flex justify-content-between mb-3">
+                    <div class="flex align-items-center justify-content-left border-round">
+                        <div class="grid">
+                            <div class="col-12 full-width">                        
+                                <p-progressSpinner *ngIf = "steps.get('entity').state == 'progress'" styleClass="w-2rem h-2rem" strokeWidth="4" 
+                                    fill="var(--surface-ground)" animationDuration=".5s" />
+                                <div *ngIf = "steps.get('entity').state == 'success'">
+                                    <p-table 
+                                        [value]="entity | keyvalue" 
+                                        styleClass="p-datatable-striped" 
+                                        [tableStyle]="{'min-width': '50rem'}">
+                                            <ng-template pTemplate="body" let-attr>
+                                                <tr>
+                                                    <td><b>{{attr.key}}</b></td>
+                                                    <td>{{attr.value}}</td>
+                                                </tr>
+                                            </ng-template>
+                                    </p-table>
+                                </div>
+                            </div>
+                        </div>                        
+                    </div>
+                </div>
+            </div>
+            <div class="card mb-0" *ngIf = "steps.get('columns').state != null">
+                <div class="grid flex justify-content-between mb-3">
+                    <div class="flex align-items-center justify-content-left border-round">
+                        <div class="grid">
+                            <div class="col-12 full-width">                        
+                                <p-progressSpinner *ngIf = "steps.get('columns').state == 'progress'" styleClass="w-2rem h-2rem" strokeWidth="4" 
+                                    fill="var(--surface-ground)" animationDuration=".5s" />
+                                <div *ngIf = "steps.get('columns').state == 'success'">
+                                    <p-table 
+                                        [columns]="headers" 
+                                        [value]="mappings" 
+                                        [tableStyle]="{ 'min-width': '50rem' }" styleClass="p-datatable-striped">
+                                        <ng-template pTemplate="header" let-columns>
+                                            <tr>
+                                                <th *ngFor="let col of columns">
+                                                    {{ col }}
+                                                </th>
+                                            </tr>
+                                        </ng-template>
+                                        <ng-template pTemplate="body" let-rowData let-columns="columns">
+                                            <tr>
+                                                <td *ngFor="let col of columns">
+                                                    {{ rowData[col] }}
+                                                </td>
+                                            </tr>
+                                        </ng-template>
+                                    </p-table>                                   
+                                </div>
+                            </div>
+                        </div>                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
