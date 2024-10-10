@@ -1,5 +1,6 @@
 import { Injectable } from "@angular/core";
-import { Subject } from "rxjs";
+import { HttpClient } from '@angular/common/http';
+import { Observable, Subject } from "rxjs";
 import { map } from 'rxjs/operators'
 import { WebsocketService } from "./websocket.service";
 
@@ -26,20 +27,31 @@ function getWsUrl(apiPath) {
   
 @Injectable()
 export class ProcessService {
-  public messages: Subject<Message>;
+  //public messages: Subject<Message>;
   public clientId: string;
-  constructor(private wsService: WebsocketService) {
-    this.clientId = createRandomString(10);
-    let wsUrl = getWsUrl(`/ws/process/csv/${this.clientId}`);
-    this.connect(wsUrl)    
+  // constructor(private wsService: WebsocketService) {
+  //   this.clientId = createRandomString(10);
+  //   let wsUrl = getWsUrl(`/ws/process/csv/${this.clientId}`);
+  //   this.connect(wsUrl)    
+  // }
+  // private connect(url: string) {
+  //   this.messages = <Subject<Message>>this.wsService.connect(url).pipe
+  //   (
+  //       map((response: MessageEvent): Message => {
+  //           let data = JSON.parse(response.data);
+  //           return data;
+  //       })
+  //   )
+  // }
+  constructor(private httpClient: HttpClient) {
+      this.clientId = createRandomString(10);
   }
-  private connect(url: string) {
-    this.messages = <Subject<Message>>this.wsService.connect(url).pipe
-    (
-        map((response: MessageEvent): Message => {
-            let data = JSON.parse(response.data);
-            return data;
-        })
-    )
+  public discoverEntity(fileName:string): Observable<Message> {
+    let url = `/api/discover/entity/${this.clientId}/${fileName}`
+    return this.httpClient.post<Message>(url, null)
+  }
+  public discoverColumns(fileName:string): Observable<Message> {
+    let url = `/api/discover/entity/columns/${this.clientId}/${fileName}`
+    return this.httpClient.post<Message>(url, null)
   }
 }

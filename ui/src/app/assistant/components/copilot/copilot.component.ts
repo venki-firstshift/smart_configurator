@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 
 import { FileUploadEvent } from 'primeng/fileupload';
-import { Subscription, debounceTime } from 'rxjs';
+import { Subscription, debounceTime, map } from 'rxjs';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { WebsocketService } from '../../service/websocket.service';
 import { Message, ProcessService } from '../../service/process.service';
@@ -32,20 +32,20 @@ export class CopilotComponent implements OnInit, OnDestroy {
     constructor(public layoutService: LayoutService, private processService: ProcessService) {
         this.subscription = this.layoutService.configUpdate$
         .pipe(debounceTime(25)).subscribe((config) => {});
-        this.processService.messages.subscribe((serverMsg: Message) => {
-            console.log(serverMsg.msg);
+        // this.processService.messages.subscribe((serverMsg: Message) => {
+        //     console.log(serverMsg.msg);
 
-            this.steps.get(serverMsg.cmd).state = 'success'
-            let nextStep = this.steps.get(serverMsg.cmd).nextStepName
-            if (nextStep) {
-                this.steps.get(nextStep).state = 'ready'
-            }
-            if (serverMsg.cmd == 'entity') {
-                this.entity = serverMsg.msg["CONFIG_DATA_ENTITY"]
-            } else if (serverMsg.cmd == 'columns') {
-                this.mappings = serverMsg.msg["CONFIG_DATA_ENTITY_MAP"]
-            }
-        });
+        //     this.steps.get(serverMsg.cmd).state = 'success'
+        //     let nextStep = this.steps.get(serverMsg.cmd).nextStepName
+        //     if (nextStep) {
+        //         this.steps.get(nextStep).state = 'ready'
+        //     }
+        //     if (serverMsg.cmd == 'entity') {
+        //         this.entity = serverMsg.msg["CONFIG_DATA_ENTITY"]
+        //     } else if (serverMsg.cmd == 'columns') {
+        //         this.mappings = serverMsg.msg["CONFIG_DATA_ENTITY_MAP"]
+        //     }
+        // });
         
     }
 
@@ -64,17 +64,32 @@ export class CopilotComponent implements OnInit, OnDestroy {
 
     }
     onDiscoverEntity($event) {
-        let msg = <Message>{cmd: 'entity', filename: this.fileName}
-        this.sendCommand(msg)
+        this.steps.get('entity').state = 'progress'
+        this.processService.discoverEntity(this.fileName).subscribe(serverMsg => {
+            this.steps.get(serverMsg.cmd).state = 'success'
+            let nextStep = this.steps.get(serverMsg.cmd).nextStepName
+            if (nextStep) {
+                this.steps.get(nextStep).state = 'ready'
+            }
+            this.entity = serverMsg.msg["CONFIG_DATA_ENTITY"]
+        })
     }
     onDiscoverEntityMap($event) {
-        let msg = <Message>{cmd: 'columns', filename: this.fileName}
-        this.sendCommand(msg)
+        this.steps.get('columns').state = 'progress'
+        this.processService.discoverColumns(this.fileName).subscribe(serverMsg => {
+            this.steps.get(serverMsg.cmd).state = 'success'
+            let nextStep = this.steps.get(serverMsg.cmd).nextStepName
+            if (nextStep) {
+                this.steps.get(nextStep).state = 'ready'
+            }
+            this.entity = serverMsg.msg["CONFIG_DATA_ENTITY"]
+            this.mappings = serverMsg.msg["CONFIG_DATA_ENTITY_MAP"]
+        })
     }
-    sendCommand(msg: Message) {
-        this.steps.get(msg.cmd).state = 'progress'
-        this.processService.messages.next(msg);
-    }
+    // sendCommand(msg: Message) {
+    //     this.steps.get(msg.cmd).state = 'progress'
+    //     this.processService.messages.next(msg);
+    // }
     ngOnDestroy() {
         if (this.subscription) {
             this.subscription.unsubscribe();

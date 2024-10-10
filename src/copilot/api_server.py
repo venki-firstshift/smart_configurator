@@ -20,7 +20,7 @@ import copilot.config_assistant as ca
 from auth import jwt_auth
 
 app = FastAPI()
-app.mount("/ui", StaticFiles(directory="ui"), name="static")
+#app.mount("/ui", StaticFiles(directory="ui"), name="static")
 
 
 @app.websocket("/ws/process/csv/{client_id}")
@@ -82,6 +82,19 @@ async def login_for_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return Token(access_token=access_token, token_type="bearer")
+
+# routes for invoking the discovery process using HTTP instead of WS
+@app.post("/api/discover/entity/{client_id}/{file_name}")
+async def discover_entity(client_id: str, file_name: str):
+    config_entity = ca.discover_config_entity(file_name, client_id)
+    result = dict(msg=config_entity, cmd='entity')
+    return result
+
+@app.post("/api/discover/entity/columns/{client_id}/{file_name}")
+async def discover_entity(client_id: str, file_name: str):
+    cols = ca.discover_column_mappings(client_id)
+    result = dict(msg=cols, cmd='columns')
+    return result
 
 if __name__ == "__main__":
     import uvicorn
