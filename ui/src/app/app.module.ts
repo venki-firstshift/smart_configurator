@@ -1,15 +1,16 @@
 import { NgModule } from '@angular/core';
-import {APP_BASE_HREF} from '@angular/common';
-import { HashLocationStrategy, LocationStrategy, PathLocationStrategy } from '@angular/common';
+import { LocationStrategy, PathLocationStrategy } from '@angular/common';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { AppLayoutModule } from './layout/app.layout.module';
 import { NotfoundComponent } from './assistant/components/notfound/notfound.component';
+import { ContextService } from './assistant/service/context.service';
 
 @NgModule({
     declarations: [AppComponent, NotfoundComponent],
     imports: [AppRoutingModule, AppLayoutModule],
     providers: [
+        ContextService,
         { provide: LocationStrategy, useClass: PathLocationStrategy }
     ],
     bootstrap: [AppComponent],

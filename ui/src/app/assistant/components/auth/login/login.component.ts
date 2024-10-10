@@ -1,10 +1,12 @@
 import { Component } from '@angular/core';
+import { map } from 'rxjs/operators'
 import { AuthService } from 'src/app/assistant/service/auth.service';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { Router } from '@angular/router';
+import { AccessToken, ContextService } from 'src/app/assistant/service/context.service';
 
 @Component({
-    providers: [AuthService, LayoutService],
+    providers: [ContextService, AuthService, LayoutService],
     selector: 'app-login',
     templateUrl: './login.component.html',
     styles: [`
@@ -25,10 +27,12 @@ export class LoginComponent {
 
     constructor(private router: Router,
                 public layoutService: LayoutService, 
+                private contextService:ContextService,
                 private authService: AuthService) { }
 
     onLogin() {
         //[routerLink]="['/copilot']"
-        this.router.navigate(['/copilot'])
+        this.authService.login(this.username, this.password, this.contextService.clientId)
+            .subscribe((res:AccessToken) => this.router.navigate(['/copilot']))
     }
 }

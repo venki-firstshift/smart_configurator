@@ -30,7 +30,7 @@ export class CopilotComponent implements OnInit, OnDestroy {
         ]
     );
 
-    constructor(public layoutService: LayoutService, private processService: ProcessService) {
+    constructor(public contextService:ContextService, public layoutService: LayoutService, private processService: ProcessService) {
         this.subscription = this.layoutService.configUpdate$
         .pipe(debounceTime(25)).subscribe((config) => {});
         // this.processService.messages.subscribe((serverMsg: Message) => {
@@ -97,7 +97,7 @@ export class CopilotComponent implements OnInit, OnDestroy {
         }
     }
     public get clientId(): string {
-        return this.processService.clientId
+        return this.contextService.clientId
     }
     public get headers(): Array<string> {
         if (this.mappings != null && this.mappings.length > 0) {

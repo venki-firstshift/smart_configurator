@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from passlib.context import CryptContext
 from starlette.responses import RedirectResponse
 
-from auth.jwt_auth import Token
+from auth.jwt_auth import Token, User, get_current_active_user
 from copilot.connection_manager import connection_manager
 import aiofiles
 import copilot.config_assistant as ca
@@ -58,7 +58,8 @@ async def redirect():
     return response
 
 @app.post("/api/upload/file/{client_id}")
-async def create_upload_file(file: UploadFile, client_id: str):
+async def create_upload_file(file: UploadFile, client_id: str,
+                             current_user:Annotated[User, Depends(get_current_active_user)]):
     # copy the uploaded file to /tmp for processing
     out_file_path = f"/tmp/smart_configurator/{file.filename}"
     async with aiofiles.open(out_file_path, 'wb') as out_file:
@@ -83,13 +84,17 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
 
 # routes for invoking the discovery process using HTTP instead of WS
 @app.post("/api/discover/entity/{client_id}/{file_name}")
-async def discover_entity(client_id: str, file_name: str):
+async def discover_entity(
+        client_id: str, file_name: str,
+        current_user:Annotated[User, Depends(get_current_active_user)]):
     config_entity = ca.discover_config_entity(file_name, client_id)
     result = dict(msg=config_entity, cmd='entity')
     return result
 
 @app.post("/api/discover/entity/columns/{client_id}/{file_name}")
-async def discover_entity(client_id: str, file_name: str):
+async def discover_entity(
+        client_id: str, file_name: str,
+        current_user:Annotated[User, Depends(get_current_active_user)]):
     cols = ca.discover_column_mappings(client_id)
     result = dict(msg=cols, cmd='columns')
     return result
