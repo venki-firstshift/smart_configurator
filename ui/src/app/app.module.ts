@@ -1,4 +1,5 @@
 import { NgModule } from '@angular/core';
+import {APP_BASE_HREF} from '@angular/common';
 import { HashLocationStrategy, LocationStrategy, PathLocationStrategy } from '@angular/common';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
