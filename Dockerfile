@@ -5,6 +5,7 @@
 #RUN npm ci --prefer-offline --no-audit --progress=false
 #COPY ui/ /ui
 #RUN npm run build
+#COPY --from=build /ui/dist/sakai-ng /app/ui
 
 # Stage 2: Setup the Python environment
 #FROM python:3.12.3-slim-bullseye
@@ -28,6 +29,5 @@ COPY requirements.txt ./
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 COPY start_server.sh ./
-#COPY --from=build /ui/dist/sakai-ng /app/ui
 
 CMD ["/app/start_server.sh"]
