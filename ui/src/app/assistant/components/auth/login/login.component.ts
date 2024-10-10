@@ -3,10 +3,10 @@ import { map } from 'rxjs/operators'
 import { AuthService } from 'src/app/assistant/service/auth.service';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { Router } from '@angular/router';
-import { AccessToken, ContextService } from 'src/app/assistant/service/context.service';
+import { AccessToken, ContextService } from 'src/app/assistant/context/context.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
-    providers: [ContextService, AuthService, LayoutService],
     selector: 'app-login',
     templateUrl: './login.component.html',
     styles: [`
@@ -32,7 +32,14 @@ export class LoginComponent {
 
     onLogin() {
         //[routerLink]="['/copilot']"
-        this.authService.login(this.username, this.password, this.contextService.clientId)
-            .subscribe((res:AccessToken) => this.router.navigate(['/copilot']))
+        this.authService.login(this.username, this.password, this.contextService.clientId).subscribe(
+            (accessToken:AccessToken) => {
+                this.contextService.token = accessToken;
+                // console.log("Setting access token clinet id ---> : " + this.contextService.clientId)
+                // console.log("Setting access token  : " + this.contextService.token)
+                environment.token = accessToken.access_token 
+                this.router.navigate(['/copilot'])
+            }
+        )
     }
 }

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, Subject } from "rxjs";
 import { map } from 'rxjs/operators'
 import { WebsocketService } from "./websocket.service";
-import { ContextService } from "./context.service";
+import { ContextService } from "../context/context.service";
 
 export interface Message {
   filename?: string;
@@ -18,7 +18,7 @@ function getWsUrl(apiPath) {
 
 
   
-@Injectable()
+@Injectable({providedIn: 'root'})
 export class ProcessService {
   //public messages: Subject<Message>;
   // constructor(private wsService: WebsocketService) {
@@ -37,6 +37,7 @@ export class ProcessService {
   // }
  
   constructor(private httpClient: HttpClient, private contextService:ContextService) {
+    //console.log("-----> ProcessService <----- ")
   }
   public discoverEntity(fileName:string): Observable<Message> {
     let url = `/api/discover/entity/${this.contextService.clientId}/${fileName}`

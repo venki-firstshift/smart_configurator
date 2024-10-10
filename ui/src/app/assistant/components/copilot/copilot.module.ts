@@ -12,6 +12,7 @@ import { FileUploadModule } from 'primeng/fileupload';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { CopilotRoutingModule } from './copilot-routing.module';
 
+
 @NgModule({
     imports: [
         CommonModule,
@@ -25,6 +26,8 @@ import { CopilotRoutingModule } from './copilot-routing.module';
         FileUploadModule,
         ProgressSpinnerModule,
         CopilotRoutingModule
+    ],
+    providers: [
     ],
     declarations: [CopilotComponent]
 })
