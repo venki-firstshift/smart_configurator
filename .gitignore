@@ -201,3 +201,4 @@ Thumbs.db
 
 # angular build stuff
 **/.angular
+compose.yaml
