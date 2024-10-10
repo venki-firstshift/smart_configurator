@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, Subject } from "rxjs";
 import { map } from 'rxjs/operators'
 import { WebsocketService } from "./websocket.service";
+import { ContextService } from "./context.service";
 
 export interface Message {
   filename?: string;
@@ -43,7 +44,8 @@ export class ProcessService {
   //       })
   //   )
   // }
-  constructor(private httpClient: HttpClient) {
+ 
+  constructor(private httpClient: HttpClient, private contextService:ContextService) {
       this.clientId = createRandomString(10);
   }
   public discoverEntity(fileName:string): Observable<Message> {

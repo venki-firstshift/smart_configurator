@@ -67,9 +67,7 @@ async def create_upload_file(file: UploadFile, client_id: str):
     return {"filename": file.filename, "client_id": client_id}
 
 @app.post("/api/token")
-async def login_for_access_token(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-) -> Token:
+async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],) -> Token:
     user = jwt_auth.authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(

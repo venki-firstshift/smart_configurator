@@ -5,6 +5,7 @@ import { Subscription, debounceTime, map } from 'rxjs';
 import { LayoutService } from 'src/app/layout/service/app.layout.service';
 import { WebsocketService } from '../../service/websocket.service';
 import { Message, ProcessService } from '../../service/process.service';
+import { ContextService } from '../../service/context.service';
 
 export interface DiscoveryStep {
     stepName: string;
@@ -12,7 +13,7 @@ export interface DiscoveryStep {
     nextStepName?: string
 }
 @Component({
-    providers: [WebsocketService, ProcessService],
+    providers: [WebsocketService, ProcessService, ContextService],
     templateUrl: './copilot.component.html',
 })
 export class CopilotComponent implements OnInit, OnDestroy {
