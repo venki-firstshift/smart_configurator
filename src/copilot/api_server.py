@@ -13,14 +13,14 @@ from fastapi.staticfiles import StaticFiles
 from passlib.context import CryptContext
 from starlette.responses import RedirectResponse
 
-from auth.jwt_auth import Token
+from auth.jwt_auth import Token, User, get_current_active_user
 from copilot.connection_manager import connection_manager
 import aiofiles
 import copilot.config_assistant as ca
 from auth import jwt_auth
 
 app = FastAPI()
-app.mount("/ui", StaticFiles(directory="ui"), name="static")
+#app.mount("/ui", StaticFiles(directory="ui"), name="static")
 
 
 @app.websocket("/ws/process/csv/{client_id}")
@@ -58,7 +58,8 @@ async def redirect():
     return response
 
 @app.post("/api/upload/file/{client_id}")
-async def create_upload_file(file: UploadFile, client_id: str):
+async def create_upload_file(file: UploadFile, client_id: str,
+                             current_user:Annotated[User, Depends(get_current_active_user)]):
     # copy the uploaded file to /tmp for processing
     out_file_path = f"/tmp/smart_configurator/{file.filename}"
     async with aiofiles.open(out_file_path, 'wb') as out_file:
@@ -67,9 +68,7 @@ async def create_upload_file(file: UploadFile, client_id: str):
     return {"filename": file.filename, "client_id": client_id}
 
 @app.post("/api/token")
-async def login_for_access_token(
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-) -> Token:
+async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],) -> Token:
     user = jwt_auth.authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -82,6 +81,23 @@ async def login_for_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return Token(access_token=access_token, token_type="bearer")
+
+# routes for invoking the discovery process using HTTP instead of WS
+@app.post("/api/discover/entity/{client_id}/{file_name}")
+async def discover_entity(
+        client_id: str, file_name: str,
+        current_user:Annotated[User, Depends(get_current_active_user)]):
+    config_entity = ca.discover_config_entity(file_name, client_id)
+    result = dict(msg=config_entity, cmd='entity')
+    return result
+
+@app.post("/api/discover/entity/columns/{client_id}/{file_name}")
+async def discover_entity(
+        client_id: str, file_name: str,
+        current_user:Annotated[User, Depends(get_current_active_user)]):
+    cols = ca.discover_column_mappings(client_id)
+    result = dict(msg=cols, cmd='columns')
+    return result
 
 if __name__ == "__main__":
     import uvicorn

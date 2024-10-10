@@ -15,6 +15,9 @@ import { AppFooterComponent } from './app.footer.component';
 import { AppConfigModule } from './config/config.module';
 import { AppSidebarComponent } from "./app.sidebar.component";
 import { AppLayoutComponent } from "./app.layout.component";
+import { JwtInterceptor } from '../assistant/service/auth.interceptor';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+
 
 @NgModule({
     declarations: [
@@ -36,6 +39,9 @@ import { AppLayoutComponent } from "./app.layout.component";
         RippleModule,
         RouterModule,
         AppConfigModule
+    ],
+    providers: [
+        { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true}
     ],
     exports: [AppLayoutComponent]
 })

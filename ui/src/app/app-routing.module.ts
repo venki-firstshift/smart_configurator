@@ -7,13 +7,14 @@ import { AppLayoutComponent } from "./layout/app.layout.component";
     imports: [
         RouterModule.forRoot([
             {
-                path: 'ui', component: AppLayoutComponent,
+                path: 'copilot', component: AppLayoutComponent,
                 children: [
                     { path: '', loadChildren: () => import('./assistant/components/copilot/copilot.module').then(m => m.CopilotModule) }
                 ]
             },
             { path: 'auth', loadChildren: () => import('./assistant/components/auth/auth.module').then(m => m.AuthModule) },
             { path: 'notfound', component: NotfoundComponent },
+            { path: '', redirectTo: '/auth/login' , pathMatch: "full"},
             { path: '**', redirectTo: '/notfound' },
         ], { scrollPositionRestoration: 'enabled', anchorScrolling: 'enabled', onSameUrlNavigation: 'reload' })
     ],
