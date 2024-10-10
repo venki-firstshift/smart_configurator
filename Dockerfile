@@ -11,6 +11,11 @@
 FROM tiangolo/uwsgi-nginx:python3.12
 ENV LISTEN_PORT 18080
 EXPOSE 18080
+# Replace ngnix conf completely
+COPY nginx.conf /app
+COPY index.html /app/www/index.html
+# Replace supervisord conf file
+COPY supervisord.conf /etc/supervisor/conf.d
 
 # Install dependencies in one layer and clean up in the same layer
 RUN apt-get update && apt-get install -y \
